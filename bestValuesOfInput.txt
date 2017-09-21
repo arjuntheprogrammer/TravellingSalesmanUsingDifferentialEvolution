@@ -1,0 +1,6 @@
+Name    | Cities | Obtained best value  | Best-known value
+
+Oliver30    30          424                     424
+eil51       51          429                     426
+eil76       76          545                     538
+KroA150     150         26744                   26524
