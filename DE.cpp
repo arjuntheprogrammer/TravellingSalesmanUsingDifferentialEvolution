@@ -10,7 +10,7 @@ using namespace std;
 #define mutationFactor 0.8
 #define crossoverRate 0.5
 
-#define totalGenerations 1
+#define totalGenerations 1000
 
 #define populationSize 15
 
@@ -133,13 +133,30 @@ void initPopulation(){
 
 void printCurrentPopulation(){  
 
+    double totalDis =0;
+    double minimumVal = DBL_MAX;
     for(int i= 0; i<populationSize; i++){
         for(int j=0; j<NumberOfCities; j++){
-            cout<<currentPopulation[i][j]<<" ";
+            // cout<<currentPopulation[i][j]<<" ";
         }
-        cout<<" TotalDistance:"<<currentPopulationTotalDistance[i];
-        cout<<endl;
+        totalDis += currentPopulationTotalDistance[i];
+        if(currentPopulationTotalDistance[i] < minimumVal){
+            minimumVal = currentPopulationTotalDistance[i];
+        }
+        // cout<<" Distance:"<<currentPopulationTotalDistance[i];
+        // cout<<endl;
     }
+    cout<<"\n============================================================================> minimumVal: "<<minimumVal<<endl;
+    cout<<"\n====================================================================> Total of Distances: "<<totalDis<<endl;
+
+    // for(int i= 0; i<populationSize; i++){
+    //     for(int j=0; j<NumberOfCities; j++){
+    //         cout<<currentPopulation[i][j]<<" ";
+    //     }
+    //     cout<<" TotalDistance:"<<currentPopulationTotalDistance[i];
+    //     cout<<endl;
+    // }
+    
 }
 
 int findElementMut(double element){

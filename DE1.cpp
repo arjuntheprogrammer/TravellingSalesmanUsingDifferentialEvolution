@@ -7,12 +7,12 @@ using namespace std;
 #define MaxNumberOfCities 1000
 #define NumberOfCities 30
 
-#define mutationFactor 0.8
-#define crossoverRate 0.8
+#define mutationFactor 0.7
+#define crossoverRate 0.7
 
 #define totalGenerations 100
 
-#define populationSize 20
+#define populationSize 50
 
 vector< pair<int, int> > position;
 vector< double > pairwiseDistance[NumberOfCities+10];
