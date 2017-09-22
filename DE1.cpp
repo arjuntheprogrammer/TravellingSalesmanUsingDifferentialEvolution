@@ -8,11 +8,11 @@ using namespace std;
 #define NumberOfCities 30
 
 #define mutationFactor 0.8
-#define crossoverRate 0.5
+#define crossoverRate 0.8
 
-#define totalGenerations 1
+#define totalGenerations 100
 
-#define populationSize 15
+#define populationSize 20
 
 vector< pair<int, int> > position;
 vector< double > pairwiseDistance[NumberOfCities+10];
@@ -21,11 +21,14 @@ int tempPopulation[NumberOfCities+10];
 
 int currentPopulation[populationSize+10][NumberOfCities+10];
 int mutantCurrentPopulation[populationSize+10][NumberOfCities+10];
+int sortedCurrentPopulation[populationSize+10][NumberOfCities+10];
 int trialCurrentPopulation[populationSize+10][NumberOfCities+10];
 
 
 
 double currentPopulationTotalDistance[populationSize+10];
+double mutantPopulationTotalDistance[populationSize+10];
+double sortedPopulationTotalDistance[populationSize+10];
 double trialPopulationTotalDistance[populationSize+10];
 
 double tempTotalDistance;
@@ -132,14 +135,21 @@ void initPopulation(){
 }
 
 void printCurrentPopulation(){  
-
+    double totalDis =0;
+    double minimumVal = DBL_MAX;
     for(int i= 0; i<populationSize; i++){
         for(int j=0; j<NumberOfCities; j++){
-            cout<<currentPopulation[i][j]<<" ";
+            // cout<<currentPopulation[i][j]<<" ";
         }
-        cout<<" TotalDistance:"<<currentPopulationTotalDistance[i];
-        cout<<endl;
+        totalDis += currentPopulationTotalDistance[i];
+        if(currentPopulationTotalDistance[i] < minimumVal){
+            minimumVal = currentPopulationTotalDistance[i];
+        }
+        // cout<<" Distance:"<<currentPopulationTotalDistance[i];
+        // cout<<endl;
     }
+    cout<<"\n============================================================================> minimumVal: "<<minimumVal<<endl;
+    cout<<"\n====================================================================> Total of Distances: "<<totalDis<<endl;
 }
 
 int findElementMut(double element){
@@ -205,12 +215,11 @@ void mutation(){
         for(int j=0; j<NumberOfCities; j++){
             visitOnFind[j]=0;
         }
-        // cout<<"\nTrail Pop:\n";
         for(int j=0; j<NumberOfCities; j++){
             mutantCurrentPopulation[mutantVector][j] = findElementMut(tempMutPopulation[j]);    
-            cout<<mutantCurrentPopulation[mutantVector][j]<<" ";
+            //cout<<mutantCurrentPopulation[mutantVector][j]<<" ";
         }
-        cout<<endl;
+        // cout<<endl;
 
         
     }
@@ -256,133 +265,93 @@ int findNextCityIndex(int index){
     return nex;
 }
 
-void crossover(){
-    int crVector;
-    int ind, currCity1Ind, currCity2Ind, nextCity1Ind, nextCity2Ind;
-    int currCity, nextCity1, nextCity2;
-
-    for(int i=0; i<populationSize; i++){
-        crVector = i;
-        initVisitCR();
-        
-        int k=0;
-        int j=0;
-        currCity1Ind = j;
-        nextCity1Ind = findNextCityIndex(currCity1Ind);
-        currCity2Ind = findElementCR(crVector, currentPopulation[crVector][currCity1Ind], 1);
-        nextCity2Ind = findNextCityIndex(currCity2Ind);
-        
-        currCity = currentPopulation[crVector][currCity1Ind];
-        nextCity1 = currentPopulation[crVector][nextCity1Ind];
-        nextCity2 = mutantCurrentPopulation[crVector][nextCity2Ind];
-
-        trialCurrentPopulation[crVector][k++] = currCity;
-        visitCR[currCity]=1;
-
-        while(1){
-            if( visitCR[nextCity1]==0 && visitCR[nextCity2]==0 ){
-                
-                double dis1 = pairwiseDistance[currCity ][nextCity1];
-                double dis2 = pairwiseDistance[ currCity ][nextCity2];
-                
-                if(dis2 <= dis1){
-                    // cout<<"CR change: "<<nextCity2<<" dis1: "<<dis1<<" dis2:"<<dis2<<" \n";
-                    trialCurrentPopulation[crVector][k++] = nextCity2;
-                    visitCR[nextCity2]=1;
-                    
-                    currCity2Ind = nextCity2Ind;
-                    nextCity2Ind = findNextCityIndex(currCity2Ind);
-                    currCity1Ind = findElementCR(crVector, mutantCurrentPopulation[crVector][currCity2Ind], 0);
-                    nextCity1Ind = findNextCityIndex(currCity1Ind);
-                    
-                    
-                    currCity = nextCity2;
-                    nextCity1 = currentPopulation[crVector][nextCity1Ind];
-                    nextCity2 = mutantCurrentPopulation[crVector][nextCity2Ind];
-            
-
-                }
-                else{
-                    trialCurrentPopulation[crVector][k++] = nextCity1;
-                    visitCR[nextCity1]=1;
-                    
-                    currCity1Ind = nextCity1Ind;
-                    nextCity1Ind = findNextCityIndex(currCity1Ind);
-                    currCity2Ind = findElementCR(crVector, currentPopulation[crVector][currCity1Ind], 1);
-                    nextCity2Ind = findNextCityIndex(currCity2Ind);
-                    
-                    currCity = nextCity1;
-                    nextCity1 = currentPopulation[crVector][nextCity1Ind];
-                    nextCity2 = mutantCurrentPopulation[crVector][nextCity2Ind];
-                }
-            }
-            
-            else if(visitCR[nextCity1]==1 && visitCR[nextCity2]==0){
-                trialCurrentPopulation[crVector][k++] = nextCity2;
-                visitCR[nextCity2]=1;
-
-                currCity2Ind = nextCity2Ind;
-                nextCity2Ind = findNextCityIndex(currCity2Ind);
-                currCity1Ind = findElementCR(crVector, mutantCurrentPopulation[crVector][currCity2Ind], 0);
-                nextCity1Ind = findNextCityIndex(currCity1Ind);
-                
-                
-                currCity = nextCity2;
-                nextCity1 = currentPopulation[crVector][nextCity1Ind];
-                nextCity2 = mutantCurrentPopulation[crVector][nextCity2Ind];
-
-            }
-            
-            else if(visitCR[nextCity1]==0 && visitCR[nextCity2]==1){
-                trialCurrentPopulation[crVector][k++] = nextCity1;
-                visitCR[nextCity1]=1;
-
-                currCity1Ind = nextCity1Ind;
-                nextCity1Ind = findNextCityIndex(currCity1Ind);
-                currCity2Ind = findElementCR(crVector, currentPopulation[crVector][currCity1Ind], 1);
-                nextCity2Ind = findNextCityIndex(currCity2Ind);
-                
-                currCity = nextCity1;
-                nextCity1 = currentPopulation[crVector][nextCity1Ind];
-                nextCity2 = mutantCurrentPopulation[crVector][nextCity2Ind];
-            }
-
-            else{
-                while(j<NumberOfCities &&  visitCR[j]==1){
-                    j++;
-                }
-                if(j==NumberOfCities){
-                    break;
-                }
-                else{
-                    currCity1Ind = j;
-                    nextCity1Ind = findNextCityIndex(currCity1Ind);
-                    currCity2Ind = findElementCR(crVector, currentPopulation[crVector][currCity1Ind], 1);
-                    nextCity2Ind = findNextCityIndex(currCity2Ind);
-                    
-                    currCity = currentPopulation[crVector][currCity1Ind];
-                    nextCity1 = currentPopulation[crVector][nextCity1Ind];
-                    nextCity2 = mutantCurrentPopulation[crVector][nextCity2Ind];
-                }
-            }
-
-
-        }
-        cout<<"\nAfter cr vector wise\n";
-        for(int j=0; j<NumberOfCities; j++){
-            cout<<trialCurrentPopulation[i][j]<<" ";
-        }
-        
-    }
-}
-
-//currentPopulation
-//trialCurrentPopulation
+// mutantCurrentPopulation[populationSize+10][NumberOfCities+10];
+// sortedCurrentPopulation[populationSize+10][NumberOfCities+10];
 
 // currentPopulationTotalDistance
 // trialPopulationTotalDistance
 
-void selection(){ 
+bool compare(pair<int , int >a, pair<int , int >b){
+    return (a.second < b.second);
+}
+
+void crossover(){
+    vector< pair<int , int > > dimensionDistancePair;
+    
+    //calculating mutantPopulationTotalDistance
+    for(int i=0; i<populationSize; i++){
+        double dis = 0;
+        int source = mutantCurrentPopulation[i][0];
+        int j;
+        for(j=0; j<NumberOfCities-1; j++){
+            dis += pairwiseDistance[mutantCurrentPopulation[i][j]][mutantCurrentPopulation[i][j+1]]; 
+        }
+        dis += pairwiseDistance[mutantCurrentPopulation[i][j]][source];
+        mutantPopulationTotalDistance[i] = dis;
+        dimensionDistancePair.push_back(make_pair(i, dis));
+    }
+
+
+    sort(dimensionDistancePair.begin(), dimensionDistancePair.end(), compare);
+    for(int i=0; i<populationSize; i++){
+        int index = dimensionDistancePair[i].first;
+        for(int j=0; j<NumberOfCities; j++){
+            sortedCurrentPopulation[i][j] = mutantCurrentPopulation[index][j];   
+        }
+        sortedPopulationTotalDistance[i] = mutantPopulationTotalDistance[index];
+    }
+
+    // cout<<"\nSorted population for crossover\n";
+    // for(int i=0; i<populationSize; i++){
+    //     for(int j=0; j<NumberOfCities; j++){
+    //         cout<<sortedCurrentPopulation[i][j]<<" ";   
+    //     }
+    //     cout<<"Distance: "<<sortedPopulationTotalDistance[i];
+    //     cout<<endl;
+    // }
+
+    int pairs = populationSize*crossoverRate;
+    int mid = NumberOfCities/2;
+    int i;
+    for(i=0; i<pairs; i+=2){
+        for(int j=0; j<NumberOfCities; j++){
+            visitCR[j]=0;
+        }
+        int k=0;
+        for(int j=0; j<mid; j++){
+            trialCurrentPopulation[i][k++] = sortedCurrentPopulation[i][j]; 
+            visitCR[sortedCurrentPopulation[i][j]] = 1;
+        }
+        for(int j=0; j<NumberOfCities; j++){
+            if(visitCR[sortedCurrentPopulation[i+1][j]] ==0){
+                trialCurrentPopulation[i][k++] = sortedCurrentPopulation[i+1][j]; 
+                visitCR[sortedCurrentPopulation[i+1][j]] = 1;
+            }
+        }
+
+        for(int j=0; j<NumberOfCities; j++){
+            visitCR[j]=0;
+        }
+        k=0;
+        for(int j=0; j<mid; j++){
+            trialCurrentPopulation[i+1][k++] = sortedCurrentPopulation[i+1][j]; 
+            visitCR[sortedCurrentPopulation[i+1][j]] = 1;
+        }
+        for(int j=0; j<NumberOfCities; j++){
+            if(visitCR[sortedCurrentPopulation[i][j]] ==0){
+                trialCurrentPopulation[i+1][k++] = sortedCurrentPopulation[i][j]; 
+                visitCR[sortedCurrentPopulation[i][j]] = 1;
+            }
+        }
+
+    }
+    for(int ii=i; ii<populationSize; ii++){
+        for(int j=0; j<NumberOfCities; j++){
+            trialCurrentPopulation[ii][j] = sortedCurrentPopulation[ii][j];
+        }
+    }
+
+    // trial distance calualation
     for(int i=0; i<populationSize; i++){
         double dis = 0;
         int source = trialCurrentPopulation[i][0];
@@ -393,6 +362,19 @@ void selection(){
         dis += pairwiseDistance[trialCurrentPopulation[i][j]][source];
         trialPopulationTotalDistance[i] = dis;
     }
+
+    
+
+}
+
+//currentPopulation
+//trialCurrentPopulation
+
+// currentPopulationTotalDistance
+// trialPopulationTotalDistance
+
+void selection(){ 
+    
 
     for(int i=0; i<populationSize; i++){
         if(trialPopulationTotalDistance[i] < currentPopulationTotalDistance[i]){
@@ -405,16 +387,14 @@ void selection(){
 
 }
 
-void calculateTotalFitness(){
-   
-}
 void printAfterCRPopulation(){
-    // for(int i=0; i<populationSize; i++){
-    //    for(int j=0; j<NumberOfCities; j++){
-    //     cout<<trialCurrentPopulation[i][j]<<" ";
-    //    }
-    //    cout<<endl;
-    // }
+    for(int i=0; i<populationSize; i++){
+        for(int j=0; j<NumberOfCities; j++){
+            cout<<trialCurrentPopulation[i][j]<<" ";   
+        }
+        cout<<" Distance:"<<trialPopulationTotalDistance[i];
+        cout<<endl;
+    }
 }
 int main(){
 
@@ -442,16 +422,16 @@ int main(){
     
     // iterations for generations
     while(currentGeneration< totalGenerations){  
-        cout<<"***************************************************************************************************\n";
-        cout<<"Current Generation="<<currentGeneration<<"\n";    
+        // cout<<"***************************************************************************************************\n";
+        // cout<<"Current Generation="<<currentGeneration<<"\n";    
         
-        cout<<"\nAfter Mutation, Population: \n";
+        // cout<<"\nAfter Mutation, Population: \n";
         mutation();
         crossover();
-        cout<<"\nAfter Crossover, Population: \n";
-        printAfterCRPopulation();
+        // cout<<"\nAfter Crossover, Population: \n";
+        // printAfterCRPopulation();
         selection();
-        cout<<"\nAfter Selection, Population: \n";
+        // cout<<"\nAfter Selection, Population: \n";
         printCurrentPopulation();
     
         currentGeneration++;
